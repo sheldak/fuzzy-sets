@@ -1,12 +1,14 @@
 package core
 
 import map.World
+import utils.Config
+import view.View
+
 import net.sourceforge.jFuzzyLogic.FIS
 import net.sourceforge.jFuzzyLogic.rule.{FuzzyRuleSet, Variable}
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.Scene
-import view.View
 
 object ScalaFXHelloWorld extends JFXApp {
 //    FuzzyObject.fuzzyDec()

@@ -2,8 +2,7 @@ package core
 
 import entities.Bacterium
 import map.World
-import utils.Vector
-
+import utils.{Config, Vector}
 import net.sourceforge.jFuzzyLogic.FIS
 import net.sourceforge.jFuzzyLogic.rule.FuzzyRuleSet
 
@@ -23,12 +22,12 @@ class DecisionMaker {
         val energy = bacterium.energy
 
         val distance = world
-          .getDistanceToClosestSugar(bacterium)
+          .distanceToClosestSugar(bacterium)
           .getOrElse(Config.MapWidth + Config.MapHeight)
 
-        val colonySize = 10
-        val fis: FIS = FIS.load(Config.FuzzyficationFile, false)
+        val colonySize = world.colonySize
 
+        val fis: FIS = FIS.load(Config.FuzzyficationFile, false)
         val fuzzyRuleSet: FuzzyRuleSet = fis.getFuzzyRuleSet()
 
         fuzzyRuleSet.setVariable("energy", energy)
@@ -38,7 +37,7 @@ class DecisionMaker {
         fuzzyRuleSet.evaluate()
 
         val decision: Double = fuzzyRuleSet.getVariable("decision").defuzzify()
-        println(decision)
+
         if (decision >= divideThreshold)
             Division
         else

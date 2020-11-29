@@ -1,18 +1,23 @@
 package entities
 
-import core.{Decision, Division, Move, DecisionMaker}
-import utils.Vector
+import core.{DecisionMaker, Division, Move}
+import utils.{Config, Vector}
 import map.World
 
 sealed trait Entity {
     var position: Vector
     val name: String
+
+    override def toString: String = f"${name}(${position.x}, ${position.y})"
 }
 
-class Bacterium(val world: World, var position: Vector, val decisionMaker: DecisionMaker) extends Entity {
-    val name: String = "Bacterium"
+class Bacterium( val world: World,
+                 var position: Vector,
+                 val decisionMaker: DecisionMaker,
+                 val startEnergy: Int) extends Entity {
 
-    var energy: Int = 30
+    val name: String = "Bacterium"
+    var energy: Int = startEnergy
 
     def makeAction(): Unit = {
         decisionMaker.decide(world, this) match {
@@ -22,13 +27,48 @@ class Bacterium(val world: World, var position: Vector, val decisionMaker: Decis
     }
 
     def divide(): Unit = {
+        for (offset <- Config.Offsets) {
+            val potentialPosition = position + offset
+            if (world.isPossiblePosition(potentialPosition) && world.isEmptyField(potentialPosition)) {
+                world.addBacterium(potentialPosition)
+                energy -= Config.DivisionEnergy
 
+                return
+            }
+        }
     }
 
     def move(speed: Int): Unit = {
-        println("Speed:", speed)
-        println(world.getDirectionToClosestSugar(this, speed))
-        position += world.getDirectionToClosestSugar(this, speed)
+        val currPosition = position
+
+        val toSugarDirection = world.directionToClosestSugar(this, speed)
+
+        for (moveOffset <- Config.Offsets if currPosition == position) {
+            val potentialPosition = currPosition + toSugarDirection + moveOffset
+
+            if (world.isPossiblePosition(potentialPosition)) {
+                if (world.isSugarAt(potentialPosition)) {
+                    position = potentialPosition
+                    eat()
+                } else if (world.isEmptyField(potentialPosition)) {
+                    position = potentialPosition
+                }
+            }
+        }
+
+        world.moveBacterium(this, currPosition)
+
+        energy -= Config.MoveEnergy
+        if (energy == 0) die()
+    }
+
+    def eat(): Unit = {
+        world.removeSugar(position)
+        energy += Config.EnergyFromSugar
+    }
+
+    def die(): Unit = {
+        world.removeBacterium(this)
     }
 }
 

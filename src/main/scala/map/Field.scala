@@ -1,8 +1,9 @@
 package map
 
 import entities.Entity
+import utils.Vector
 
-class Field(x: Int, y: Int) {
+class Field(position: Vector) {
     var entityAt: Option[Entity] = None
 
     def addEntity(entity: Entity): Unit = {
@@ -13,5 +14,7 @@ class Field(x: Int, y: Int) {
         entityAt = None
     }
 
-    override def toString: String = f"($x,$y)"
+    def isEntity: Boolean = entityAt.isDefined
+
+    override def toString: String = f"($position.x,$position.y)"
 }

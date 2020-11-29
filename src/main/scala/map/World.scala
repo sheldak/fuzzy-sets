@@ -1,8 +1,8 @@
 package map
 
-import core.{Config, DecisionMaker}
+import core.DecisionMaker
 import entities.{Bacterium, Entity, Sugar}
-import utils.Vector
+import utils.{Config, Vector}
 
 import scala.collection.mutable
 import scala.util.Random
@@ -14,10 +14,12 @@ class World {
     val fields: List[List[Field]] =
         for (x <- (0 until Config.MapHeight).toList) yield {
             for (y <- (0 until Config.MapWidth).toList)
-                yield new Field(x, y)
+                yield new Field(new Vector(x, y))
         }
 
-    val entities: mutable.Set[Entity] = mutable.Set(new Bacterium(this, new Vector(100, 100), decisionMaker))
+    val entities: mutable.Set[Entity] = mutable.Set(
+        new Bacterium(this, Config.startPosition, decisionMaker, Config.startEnergy)
+    )
 
     def update(): Unit = {
         addSugar()
@@ -25,6 +27,18 @@ class World {
         entities
           .filter(entity => entity.isInstanceOf[Bacterium])
           .foreach(bacterium => bacterium.asInstanceOf[Bacterium].makeAction())
+    }
+
+    def addBacterium(position: Vector): Unit = {
+        val newBacterium = new Bacterium(this, position, decisionMaker, Config.DivisionEnergy)
+
+        fields(position.x)(position.y).addEntity(newBacterium)
+        entities.add(newBacterium)
+    }
+
+    def removeBacterium(bacterium: Bacterium): Unit = {
+        fields(bacterium.position.x)(bacterium.position.y).deleteEntity()
+        entities.remove(bacterium)
     }
 
     def addSugar(): Unit = {
@@ -40,40 +54,64 @@ class World {
             val newSugar = new Sugar(new Vector(x, y))
             fields(x)(y).addEntity(newSugar)
             entities.add(newSugar)
-            println(x, y)
         }
     }
 
-    def getDirectionToClosestSugar(bacterium: Bacterium, speed: Int): Vector = {
+    def removeSugar(position: Vector): Unit = {
+        val field = fields(position.x)(position.y)
+
+        entities.remove(field.entityAt.get)
+        field.deleteEntity()
+    }
+
+    def isEmptyField(position: Vector): Boolean = !fields(position.x)(position.y).isEntity
+
+    def isSugarAt(position: Vector): Boolean =
+        fields(position.x)(position.y)
+          .entityAt
+          .getOrElse(false)
+          .isInstanceOf[Sugar]
+
+    def isPossiblePosition(position: Vector): Boolean =
+        position.x >= 0 && position.y >= 0 && position.x < Config.MapWidth && position.y < Config.MapHeight
+
+    def moveBacterium(bacterium: Bacterium, oldPosition: Vector): Unit = {
+        fields(oldPosition.x)(oldPosition.y).deleteEntity()
+        fields(bacterium.position.x)(bacterium.position.y).addEntity(bacterium)
+    }
+
+    def colonySize: Int = entities.count(entity => entity.isInstanceOf[Bacterium])
+
+    def directionToClosestSugar(bacterium: Bacterium, speed: Int): Vector = {
         if (entities.exists(entity => entity.isInstanceOf[Sugar])) {
-            val sugar = getClosestSugar(bacterium)
+            val sugar = closestSugar(bacterium)
             val difference = sugar.position - bacterium.position
 
             difference.direction(speed)
         } else new Vector(0, 0)
     }
 
-    def getDistanceToClosestSugar(bacterium: Bacterium): Option[Int] = {
+    def distanceToClosestSugar(bacterium: Bacterium): Option[Int] = {
         if (entities.exists(entity => entity.isInstanceOf[Sugar])) {
-            Some(getDistance(bacterium, getClosestSugar(bacterium)))
+            Some(distance(bacterium, closestSugar(bacterium)))
         } else {
             None
         }
     }
 
-    private def getClosestSugar(bacterium: Bacterium): Sugar = {
+    private def closestSugar(bacterium: Bacterium): Sugar = {
         entities
           .toArray
           .filter(entity => entity.isInstanceOf[Sugar])
-          .reduce((a, b) => getCloser(bacterium, a, b))
+          .reduce((a, b) => closer(bacterium, a, b))
           .asInstanceOf[Sugar]
     }
 
-    private def getCloser(reference: Entity, a: Entity, b: Entity): Entity = {
-        if (getDistance(reference, a) <= getDistance(reference, b)) a else b
+    private def closer(reference: Entity, a: Entity, b: Entity): Entity = {
+        if (distance(reference, a) <= distance(reference, b)) a else b
     }
 
-    private def getDistance(a: Entity, b: Entity): Int = {
+    private def distance(a: Entity, b: Entity): Int = {
         (a.position - b.position).abs
     }
 }

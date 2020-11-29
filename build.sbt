@@ -5,7 +5,6 @@ version := "0.1"
 scalaVersion := "2.13.3"
 
 libraryDependencies += "org.scalafx" % "scalafx_2.13" % "14-R19"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % Test
 
 lazy val osName = System.getProperty("os.name") match {
     case n if n.startsWith("Linux") => "linux"

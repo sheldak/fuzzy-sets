@@ -6,8 +6,6 @@ class Vector(val x: Int, val y: Int) {
     def *(that: Int): Vector = new Vector(this.x * that, this.y * that)
     def abs: Int = Math.abs(x) + Math.abs(y)
 
-    override def toString: String = f"Vector($x,$y)"
-
     def direction(maxDistance: Int): Vector = {
         if (this.abs <= maxDistance) {
             this
@@ -32,4 +30,6 @@ class Vector(val x: Int, val y: Int) {
             diagonalVector + notDiagonalVector
         }
     }
+
+    override def toString: String = f"Vector($x,$y)"
 }
