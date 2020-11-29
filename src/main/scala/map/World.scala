@@ -1,7 +1,6 @@
 package map
 
-import core.DecisionMaker
-import entities.{Bacterium, Entity, Sugar}
+import entities.{Bacterium, DecisionMaker, Entity, Sugar}
 import utils.{Config, Vector}
 
 import scala.collection.mutable

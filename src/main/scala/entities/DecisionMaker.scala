@@ -1,8 +1,8 @@
-package core
+package entities
 
-import entities.Bacterium
 import map.World
-import utils.{Config, Vector}
+import utils.Config
+
 import net.sourceforge.jFuzzyLogic.FIS
 import net.sourceforge.jFuzzyLogic.rule.FuzzyRuleSet
 

@@ -1,6 +1,5 @@
 package entities
 
-import core.{DecisionMaker, Division, Move}
 import utils.{Config, Vector}
 import map.World
 
@@ -8,7 +7,7 @@ sealed trait Entity {
     var position: Vector
     val name: String
 
-    override def toString: String = f"${name}(${position.x}, ${position.y})"
+    override def toString: String = f"$name(${position.x}, ${position.y})"
 }
 
 class Bacterium( val world: World,
