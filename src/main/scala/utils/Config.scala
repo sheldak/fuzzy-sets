@@ -19,9 +19,13 @@ object Config {
 
     val NewSugar: Int = 5
 
+    val MaxEnergy: Int = 200
     val EnergyFromSugar: Int = 50
     val MoveEnergy: Int = 10
     val DivisionEnergy: Int = 50
+
+    val MaxDecisionDistance: Int = 40
+    val MaxDecisionColonySize: Int = 100
 
     val Offsets: List[Vector] = List(
         new Vector(0, 0),

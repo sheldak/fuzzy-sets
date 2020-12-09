@@ -63,7 +63,7 @@ class Bacterium( val world: World,
 
     def eat(): Unit = {
         world.removeSugar(position)
-        energy += Config.EnergyFromSugar
+        energy = Math.min(energy + Config.EnergyFromSugar, Config.MaxEnergy)
     }
 
     def die(): Unit = {

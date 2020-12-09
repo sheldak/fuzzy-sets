@@ -1,10 +1,7 @@
 package entities
 
 import map.World
-import utils.Config
-
-import net.sourceforge.jFuzzyLogic.FIS
-import net.sourceforge.jFuzzyLogic.rule.FuzzyRuleSet
+import utils.{Config, Fuzzyficator}
 
 sealed trait Decision
 case object Division extends Decision
@@ -21,22 +18,16 @@ class DecisionMaker {
     def decide(world: World, bacterium: Bacterium): Decision = {
         val energy = bacterium.energy
 
-        val distance = world
-          .distanceToClosestSugar(bacterium)
-          .getOrElse(Config.MapWidth + Config.MapHeight)
+        val distance = Math.min(
+            Config.MaxDecisionDistance,
+            world
+              .distanceToClosestSugar(bacterium)
+              .getOrElse(Config.MapWidth + Config.MapHeight)
+        )
 
-        val colonySize = world.colonySize
+        val colonySize = Math.min(world.colonySize, Config.MaxDecisionColonySize)
 
-        val fis: FIS = FIS.load(Config.FuzzyficationFile, false)
-        val fuzzyRuleSet: FuzzyRuleSet = fis.getFuzzyRuleSet()
-
-        fuzzyRuleSet.setVariable("energy", energy)
-        fuzzyRuleSet.setVariable("distance", distance)
-        fuzzyRuleSet.setVariable("colonySize", colonySize)
-
-        fuzzyRuleSet.evaluate()
-
-        val decision: Double = fuzzyRuleSet.getVariable("decision").defuzzify()
+        val decision: Double = Fuzzyficator.evaluateDecision(energy, distance, colonySize)
 
         if (decision >= divideThreshold)
             Division
@@ -44,7 +35,7 @@ class DecisionMaker {
             Move(calculateSpeed(decision))
     }
 
-    def calculateSpeed(decision: Double): Int = {
+    private def calculateSpeed(decision: Double): Int = {
         if (decision >= goIndicator)
             (goSpeed * (divideThreshold - decision) / (divideThreshold - goIndicator)).asInstanceOf[Int]
         else if (decision >= goFastIndicator)
